@@ -4,7 +4,7 @@ import ma.mla.callcards.model.Product;
 import ma.mla.callcards.model.ProductType;
 import ma.mla.callcards.utils.DataUtils;
 import ma.mla.callcards.utils.UIUtils;
-import ma.mla.callcards.utils.Validator;
+import ma.mla.callcards.utils.ValidatorAcceptor;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -54,7 +54,7 @@ public class ProductRowInput {
 			}
 		});
 
-		percentText = UIUtils.newDoubleText(parent, new Validator<Double>() {
+		percentText = UIUtils.newDoubleText(parent, new ValidatorAcceptor<Double>() {
 
 			@Override
 			public boolean isValid(Double d) {

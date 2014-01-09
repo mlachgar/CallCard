@@ -117,7 +117,7 @@ public class UIUtils {
 	}
 
 	public static Text newDoubleText(Composite parent,
-			final Validator<Double> validator) {
+			final ValidatorAcceptor<Double> validator) {
 		final Text input = new Text(parent, SWT.BORDER);
 		input.addModifyListener(new ModifyListener() {
 

@@ -7,7 +7,7 @@ import ma.mla.callcards.model.ProductType;
 import ma.mla.callcards.utils.Acceptor;
 import ma.mla.callcards.utils.DataUtils;
 import ma.mla.callcards.utils.UIUtils;
-import ma.mla.callcards.utils.Validator;
+import ma.mla.callcards.utils.ValidatorAcceptor;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ToolBarManager;
@@ -60,7 +60,7 @@ public abstract class ProductSetRow {
 			}
 		});
 
-		valueText = UIUtils.newDoubleText(parent, new Validator<Double>() {
+		valueText = UIUtils.newDoubleText(parent, new ValidatorAcceptor<Double>() {
 
 			@Override
 			public boolean isValid(Double d) {

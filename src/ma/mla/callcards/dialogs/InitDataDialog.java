@@ -103,7 +103,7 @@ public class InitDataDialog extends ScrolledDialog {
 			data.setProviderCredits(providerCreditComp.getAmounts());
 			StorageManager.getStorage().setInitData(data);
 			StorageManager.getStorage().setStockProducts(
-					stockForm.getSelectedProducts());
+					stockForm.getProducts());
 			super.okPressed();
 		}
 	}
