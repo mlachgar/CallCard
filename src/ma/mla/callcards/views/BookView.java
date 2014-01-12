@@ -15,6 +15,7 @@ import ma.mla.callcards.model.Client;
 import ma.mla.callcards.model.PrintableControl;
 import ma.mla.callcards.model.PrintableView;
 import ma.mla.callcards.model.Provider;
+import ma.mla.callcards.utils.DataUtils;
 import ma.mla.callcards.utils.SafePropertyListener;
 import ma.mla.callcards.utils.SectionRelayouter;
 import ma.mla.callcards.utils.UIUtils;
@@ -113,6 +114,7 @@ public class BookView extends ViewPart implements PrintableView {
 		table.setHeaderVisible(true);
 
 		providersTable.setContentProvider(new ArrayContentProvider());
+		providersTable.setSorter(DataUtils.NAME_SORTER);
 
 		TableViewerColumn tvc = new TableViewerColumn(providersTable, SWT.NONE);
 		TableColumn col = tvc.getColumn();
@@ -209,7 +211,7 @@ public class BookView extends ViewPart implements PrintableView {
 		table.setHeaderVisible(true);
 
 		clientsTable.setContentProvider(new ArrayContentProvider());
-
+		clientsTable.setSorter(DataUtils.NAME_SORTER);
 		TableViewerColumn tvc = new TableViewerColumn(clientsTable, SWT.NONE);
 		TableColumn col = tvc.getColumn();
 		col.setText("Nom");

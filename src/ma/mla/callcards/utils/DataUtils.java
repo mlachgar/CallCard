@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Locale;
 
 import ma.mla.callcards.model.Dateable;
+import ma.mla.callcards.model.NamedObject;
 import ma.mla.callcards.model.Product;
 
 import org.eclipse.jface.viewers.Viewer;
@@ -26,6 +27,15 @@ public class DataUtils {
 			Dateable d1 = (Dateable) e1;
 			Dateable d2 = (Dateable) e2;
 			return d2.getDate().compareTo(d1.getDate());
+		}
+	};
+
+	public static final ViewerSorter NAME_SORTER = new ViewerSorter() {
+		@Override
+		public int compare(Viewer viewer, Object e1, Object e2) {
+			NamedObject d1 = (NamedObject) e1;
+			NamedObject d2 = (NamedObject) e2;
+			return d1.getName().compareToIgnoreCase(d2.getName());
 		}
 	};
 

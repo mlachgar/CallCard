@@ -2,7 +2,7 @@ package ma.mla.callcards.model;
 
 import java.util.List;
 
-public class ClientSheet {
+public class ClientSheet extends NamedObject {
 
 	private Client client;
 	private List<ClientPay> pays;
@@ -12,6 +12,14 @@ public class ClientSheet {
 	private double totalCost;
 	private double credit;
 	private double oldCredit;
+
+	@Override
+	public String getName() {
+		if (client != null) {
+			return client.getName();
+		}
+		return null;
+	}
 
 	public Client getClient() {
 		return client;

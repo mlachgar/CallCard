@@ -71,6 +71,7 @@ public class ClientsStatusView extends ViewPart {
 		table.setLinesVisible(true);
 		table.setHeaderVisible(true);
 		clientsStateTable.setContentProvider(new ArrayContentProvider());
+		clientsStateTable.setSorter(DataUtils.NAME_SORTER);
 
 		TableViewerColumn tvc = new TableViewerColumn(clientsStateTable,
 				SWT.NONE);
