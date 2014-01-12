@@ -2,6 +2,7 @@ package ma.mla.callcards.editor;
 
 import java.util.List;
 
+import ma.mla.callcards.model.NamedObject;
 import ma.mla.callcards.utils.Acceptor;
 import ma.mla.callcards.utils.UIUtils;
 
@@ -14,7 +15,8 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
-public abstract class ComboEditingSupport<T> extends EditingSupport {
+public abstract class ComboEditingSupport<T extends NamedObject> extends
+		EditingSupport {
 
 	private ComboViewer combo;
 	private T value;

@@ -29,8 +29,14 @@ public class GenericProposalProvider<T extends NamedObject> implements
 		List<Proposal> proposals = new ArrayList<Proposal>();
 		for (int i = 0; i < items.size(); i++) {
 			T item = items.get(i);
-			if (item.getName().toUpperCase().contains(content.toUpperCase())) {
-				proposals.add(new Proposal(items.get(i), content, pos));
+			String name = item.getName();
+			String[] parts = name.split(" ");
+			for (String p : parts) {
+				if (p != null && !p.isEmpty()
+						&& p.toUpperCase().startsWith(content.toUpperCase())) {
+					proposals.add(new Proposal(items.get(i), content, pos));
+					break;
+				}
 			}
 		}
 		IContentProposal[] array = new IContentProposal[proposals.size()];

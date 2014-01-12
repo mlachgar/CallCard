@@ -7,7 +7,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import ma.mla.callcards.model.GenericProposalProvider;
+import ma.mla.callcards.model.NamedObject;
+
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.fieldassist.ComboContentAdapter;
+import org.eclipse.jface.fieldassist.IContentProposal;
+import org.eclipse.jface.fieldassist.IContentProposalListener;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnViewerEditor;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationEvent;
@@ -234,43 +240,44 @@ public class UIUtils {
 		return text;
 	}
 
-	// public static <T extends NamedObject> ComboViewer newProposalCombo(
-	// Composite parent, String name, final List<T> items,
-	// final Acceptor<T> call) {
-	// final ComboViewer combo = newCombo(parent, name, SWT.BORDER);
-	// ComboContentAdapter comboAdapt = new ComboContentAdapter();
-	// final GenericProposalProvider<T> provider = new
-	// GenericProposalProvider<T>(
-	// items);
-	// final CloseableContentProposalAdapter adapt = new
-	// CloseableContentProposalAdapter(
-	// combo.getControl(), comboAdapt, provider, null, null);
-	// adapt.addContentProposalListener(new IContentProposalListener() {
-	//
-	// @Override
-	// public void proposalAccepted(IContentProposal p) {
-	// T cl = provider.extractItem(p);
-	// combo.setSelection(new StructuredSelection(cl), false);
-	// call.accept(cl);
-	// }
-	// });
-	//
-	// combo.addPostSelectionChangedListener(new ISelectionChangedListener() {
-	//
-	// @Override
-	// public void selectionChanged(SelectionChangedEvent event) {
-	// adapt.hide();
-	// call.accept((T) UIUtils.getFirstSelected(event.getSelection(),
-	// Object.class));
-	// }
-	// });
-	// combo.setContentProvider(new ArrayContentProvider());
-	// combo.setInput(items);
-	// return combo;
-	// }
+	@SuppressWarnings("unchecked")
+	public static <T extends NamedObject> ComboViewer newCombo(
+			Composite parent, String name, final List<T> items,
+			final Acceptor<T> call) {
+		final ComboViewer combo = newCombo(parent, name, SWT.BORDER);
+		ComboContentAdapter comboAdapt = new ComboContentAdapter();
+		final GenericProposalProvider<T> provider = new GenericProposalProvider<T>(
+				items);
+		final CloseableContentProposalAdapter adapt = new CloseableContentProposalAdapter(
+				combo.getControl(), comboAdapt, provider, null, null);
+		adapt.addContentProposalListener(new IContentProposalListener() {
+
+			@Override
+			public void proposalAccepted(IContentProposal p) {
+				T cl = provider.extractItem(p);
+				combo.setSelection(new StructuredSelection(cl), false);
+				combo.getCombo().clearSelection();
+				call.accept(cl);
+			}
+		});
+
+		combo.addPostSelectionChangedListener(new ISelectionChangedListener() {
+
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				adapt.hide();
+				combo.getCombo().clearSelection();
+				call.accept((T) UIUtils.getFirstSelected(event.getSelection(),
+						Object.class));
+			}
+		});
+		combo.setContentProvider(new ArrayContentProvider());
+		combo.setInput(items);
+		return combo;
+	}
 
 	@SuppressWarnings("unchecked")
-	public static <T> ComboViewer newCombo(Composite parent, String name,
+	public static <T> ComboViewer newNamedCombo(Composite parent, String name,
 			final List<T> items, final Acceptor<T> call) {
 		if (name != null) {
 			Label label = new Label(parent, SWT.NONE);
