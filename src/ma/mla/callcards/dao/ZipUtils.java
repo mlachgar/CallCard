@@ -1,6 +1,10 @@
 package ma.mla.callcards.dao;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.util.Properties;
 
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
@@ -27,5 +31,24 @@ public class ZipUtils {
 			throws ZipException {
 		ZipFile zip = new ZipFile(srcZipFile);
 		zip.extractAll(destFolder);
+	}
+
+	static public Properties extractMetadata(File srcZipFile,
+			String metadataFileName) throws Exception {
+		Properties props = new Properties();
+		ZipFile zip = new ZipFile(srcZipFile);
+		File f = File.createTempFile("ccb", "meta");
+		zip.extractFile(metadataFileName, f.getParent());
+		File metaFile = new File(f.getParent(), metadataFileName);
+		BufferedReader in = new BufferedReader(new InputStreamReader(
+				new FileInputStream(metaFile), "UTF-8"));
+		try {
+			props.load(in);
+		} finally {
+			in.close();
+		}
+		f.delete();
+		metaFile.delete();
+		return props;
 	}
 }

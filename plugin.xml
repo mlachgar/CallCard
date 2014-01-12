@@ -105,6 +105,14 @@
             name="Balance"
             restorable="false">
       </view>
+      <view
+            category="CallCard"
+            class="ma.mla.callcards.views.HistoryView"
+            icon="icons/history_16.png"
+            id="ma.mla.view.history"
+            name="Historique"
+            restorable="false">
+      </view>
    </extension>
    <extension
          id="CallCard.product"

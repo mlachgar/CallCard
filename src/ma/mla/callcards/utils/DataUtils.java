@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Properties;
 
 import ma.mla.callcards.model.Dateable;
 import ma.mla.callcards.model.NamedObject;
@@ -20,6 +21,9 @@ public class DataUtils {
 
 	public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat(
 			"dd-MM-yyyy");
+
+	public static final SimpleDateFormat FULL_DATE_FORMAT = new SimpleDateFormat(
+			"EEE d MMM yyyy - HH:mm:ss");
 
 	public static final ViewerSorter DATEABLE_SORTER = new ViewerSorter() {
 		@Override
@@ -166,4 +170,17 @@ public class DataUtils {
 		}
 
 	}
+
+	public static double getDoubleProperty(Properties props, String key) {
+		String value = props.getProperty(key);
+		if (value != null) {
+			try {
+				return Double.parseDouble(value);
+			} catch (Exception ex) {
+				return 0.0;
+			}
+		}
+		return 0.0;
+	}
+
 }

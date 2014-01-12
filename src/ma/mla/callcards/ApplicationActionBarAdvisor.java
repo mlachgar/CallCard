@@ -10,6 +10,7 @@ import ma.mla.callcards.actions.EditInitDataAction;
 import ma.mla.callcards.actions.OpenFolderAction;
 import ma.mla.callcards.actions.SaveAsFolderAction;
 import ma.mla.callcards.actions.SaveFolderAction;
+import ma.mla.callcards.actions.ShowHistoryAction;
 import ma.mla.callcards.actions.ShowViewAction;
 import ma.mla.callcards.dao.Storage;
 import ma.mla.callcards.dao.StorageListener;
@@ -49,6 +50,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 	private CreateFolderAction createFolderAction;
 	private OpenFolderAction openFolderAction;
 	private SaveFolderAction saveFolderAction;
+	private ShowHistoryAction showHistoryAction;
 	private ShowViewAction showBookAction;
 	private ShowViewAction showProductsAction;
 	private ShowViewAction showAccountsAction;
@@ -118,6 +120,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 		folderMenu.add(new SaveFolderAction(false));
 		folderMenu.add(new SaveAsFolderAction(false));
 		folderMenu.add(new ContinueFolderAction());
+		folderMenu.add(new ShowHistoryAction(window, "history_16.png"));
 		folderMenu.add(ActionFactory.QUIT.create(window));
 
 		inputMenu = new ActionMenuManager("Saisie");
@@ -163,6 +166,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 		addClientPayAction = new AddPayAction(PersonType.CLIENT, true);
 		addProviderPayAction = new AddPayAction(PersonType.PROVIDER, true);
 		addExpenseAction = new AddExpenseAction(true);
+		showHistoryAction = new ShowHistoryAction(window, "history_48.png");
 	}
 
 	@Override
@@ -174,6 +178,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 		mainToolbar.add(openFolderAction);
 		mainToolbar.add(saveFolderAction);
 		mainToolbar.add(saveAsFolderAction);
+		mainToolbar.add(showHistoryAction);
 		mainToolbar.add(new Separator());
 		mainToolbar.add(showAccountsAction);
 		mainToolbar.add(showBookAction);

@@ -8,10 +8,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import ma.mla.callcards.dao.StorageListener.ChangeType;
+import ma.mla.callcards.model.AccountsSummary;
+import ma.mla.callcards.utils.DataUtils;
 import ma.mla.callcards.utils.TaskUtils;
 
 public class StorageManager {
@@ -65,6 +71,16 @@ public class StorageManager {
 		storage.reset(name);
 		zipFile = null;
 		fireStorageChange(storage, ChangeType.OPEN);
+	}
+
+	public static String restoreFolder(File zipFile) throws Exception {
+		checkStorage();
+		File home = getHomeDir(zipFile);
+		ZipUtils.unzipFolder(zipFile.getAbsolutePath(), home.getAbsolutePath());
+		String problems = storage.load(home);
+		zipFile = null;
+		fireStorageChange(storage, ChangeType.OPEN);
+		return problems;
 	}
 
 	public static String openFolder(String path) throws Exception {
@@ -273,4 +289,63 @@ public class StorageManager {
 			e.printStackTrace();
 		}
 	}
+
+	public static List<StorageHistory> getHistory() {
+		List<StorageHistory> history = new ArrayList<StorageHistory>();
+		try {
+			Map<String, StorageHistory> map = new HashMap<String, StorageHistory>();
+			File dir = getRestoreDir();
+			for (File f : dir.listFiles()) {
+				Properties meta = ZipUtils.extractMetadata(f,
+						Storage.FN_METADATA);
+				String name = meta.getProperty(Storage.META_FOLDER_NAME);
+				if (name != null) {
+					StorageHistory h = map.get(name);
+					if (h == null) {
+						h = new StorageHistory(name);
+						map.put(name, h);
+						history.add(h);
+					}
+					HistoryItem item = new HistoryItem(f);
+					AccountsSummary content = new AccountsSummary();
+					content.totalStock = DataUtils.getDoubleProperty(meta,
+							Storage.META_TOTAL_STOCK);
+					content.totalClientCredit = DataUtils.getDoubleProperty(
+							meta, Storage.META_CLIENT_CREDIT);
+					content.totalProviderCredit = DataUtils.getDoubleProperty(
+							meta, Storage.META_PROVIDER_CREDIT);
+					content.totalCash = DataUtils.getDoubleProperty(meta,
+							Storage.META_TOTAL_CASH);
+					content.totalPurchases = DataUtils.getDoubleProperty(meta,
+							Storage.META_TOTAL_PURCHASES);
+					content.totalExpenses = DataUtils.getDoubleProperty(meta,
+							Storage.META_TOTAL_EXPENSES);
+					content.totalProviderPays = DataUtils.getDoubleProperty(
+							meta, Storage.META_TOTAL_PROVIDER_PAYS);
+					content.balance = DataUtils.getDoubleProperty(meta,
+							Storage.META_BALANCE);
+					item.setContent(content);
+					h.addItem(item);
+				}
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		for (StorageHistory h : history) {
+			Collections.sort(h.getItems(), new Comparator<HistoryItem>() {
+				@Override
+				public int compare(HistoryItem i1, HistoryItem i2) {
+					return i2.compraeTo(i1);
+				}
+			});
+		}
+		Collections.sort(history, new Comparator<StorageHistory>() {
+			@Override
+			public int compare(StorageHistory h1, StorageHistory h2) {
+				return h2.compraeTo(h1);
+			}
+		});
+		return history;
+	}
+
 }

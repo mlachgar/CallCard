@@ -47,19 +47,6 @@ import ma.mla.callcards.utils.DataUtils;
 
 public class LocalStorage implements Storage {
 
-	private static final String FN_METADATA = ".metadata";
-	private static final String META_FOLDER_NAME = "folder.name";
-
-	private static final String FN_PRODUCTS = "products.xml";
-	private static final String FN_CLIENTS = "clients.xml";
-	private static final String FN_PROVIDERS = "providers.xml";
-	private static final String FN_PAYS = "pays.xml";
-	private static final String FN_SALES = "sales.xml";
-	private static final String FN_PURCHASES = "purchases.xml";
-	private static final String FN_STOCK = "stock.xml";
-	private static final String FN_INIT_DATA = "init.xml";
-	private static final String FN_EXPENSES = "expenses.xml";
-
 	private List<Product> products = new ArrayList<Product>();
 	private List<Client> clients = new ArrayList<Client>();
 	private List<Provider> providers = new ArrayList<Provider>();
@@ -223,7 +210,23 @@ public class LocalStorage implements Storage {
 		FileOutputStream out = new FileOutputStream(new File(folder,
 				FN_METADATA));
 		try {
-			properties.setProperty(META_FOLDER_NAME, name);
+			AccountsSummary summary = getAccountsSummary();
+			properties.setProperty(META_TOTAL_STOCK,
+					String.valueOf(summary.totalStock));
+			properties.setProperty(META_CLIENT_CREDIT,
+					String.valueOf(summary.totalClientCredit));
+			properties.setProperty(META_PROVIDER_CREDIT,
+					String.valueOf(summary.totalProviderCredit));
+			properties.setProperty(META_TOTAL_PURCHASES,
+					String.valueOf(summary.totalPurchases));
+			properties.setProperty(META_TOTAL_CASH,
+					String.valueOf(summary.totalCash));
+			properties.setProperty(META_TOTAL_EXPENSES,
+					String.valueOf(summary.totalExpenses));
+			properties.setProperty(META_TOTAL_PROVIDER_PAYS,
+					String.valueOf(summary.totalProviderPays));
+			properties.setProperty(META_BALANCE,
+					String.valueOf(summary.balance));
 			properties.store(new OutputStreamWriter(out, "UTF-8"), "");
 		} finally {
 			out.close();
@@ -421,13 +424,13 @@ public class LocalStorage implements Storage {
 		double totalProviderPays = getTotalProviderPays();
 		summary.totalProviderPays = totalProviderPays;
 		summary.totalStock = getTotalStock();
-		summary.totalCredit = getTotalCredit();
+		summary.totalClientCredit = getTotalCredit();
 		summary.totalCash = initData.getInitialCash() + getTotalClientPays()
 				- getTotalExpenses() - totalProviderPays;
 		summary.totalPurchases = getTotalPurchases();
 		summary.totalProviderCredit = getTotalProviderCredit();
 		summary.balance = -summary.totalProviderCredit + summary.totalStock
-				+ summary.totalCredit + summary.totalCash;
+				+ summary.totalClientCredit + summary.totalCash;
 		return summary;
 	}
 

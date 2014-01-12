@@ -93,4 +93,32 @@ public class TaskUtils {
 			UIUtils.error("Impossible d'ouvrir le dossier", e.getMessage());
 		}
 	}
+
+	public static void restoreFolder(final File file) {
+		ProgressMonitorDialog dlg = new ProgressMonitorDialog(
+				UIUtils.getShell());
+		try {
+			dlg.run(true, false, new IRunnableWithProgress() {
+
+				@Override
+				public void run(IProgressMonitor monitor)
+						throws InvocationTargetException, InterruptedException {
+					try {
+						String problems = StorageManager.restoreFolder(file);
+						if (problems != null && !problems.isEmpty()) {
+							UIUtils.warning("Dossier invalide",
+									"L'ouverture du dossier a rencontré les problèmes suivants :\n"
+											+ problems);
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+						UIUtils.error("Impossible d'ouvrir le dossier",
+								e.getMessage());
+					}
+				}
+			});
+		} catch (Exception e) {
+			UIUtils.error("Impossible d'ouvrir le dossier", e.getMessage());
+		}
+	}
 }

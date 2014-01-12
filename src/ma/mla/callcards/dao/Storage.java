@@ -27,6 +27,28 @@ import ma.mla.callcards.model.StockState;
 
 public interface Storage {
 
+	public static final String FN_METADATA = ".metadata";
+	public static final String META_FOLDER_NAME = "folder.name";
+
+	public static final String META_TOTAL_STOCK = "summary.total.stock";
+	public static final String META_TOTAL_CASH = "summary.total.cash";
+	public static final String META_CLIENT_CREDIT = "summary.client.credit";
+	public static final String META_PROVIDER_CREDIT = "summary.provider.credit";
+	public static final String META_TOTAL_PURCHASES = "summary.total.purchases";
+	public static final String META_TOTAL_EXPENSES = "summary.total.expenses";
+	public static final String META_TOTAL_PROVIDER_PAYS = "summary.total.provider.pays";
+	public static final String META_BALANCE = "summary.balance";
+
+	public static final String FN_PRODUCTS = "products.xml";
+	public static final String FN_CLIENTS = "clients.xml";
+	public static final String FN_PROVIDERS = "providers.xml";
+	public static final String FN_PAYS = "pays.xml";
+	public static final String FN_SALES = "sales.xml";
+	public static final String FN_PURCHASES = "purchases.xml";
+	public static final String FN_STOCK = "stock.xml";
+	public static final String FN_INIT_DATA = "init.xml";
+	public static final String FN_EXPENSES = "expenses.xml";
+
 	public List<Product> getProducts();
 
 	public List<Client> getClients();

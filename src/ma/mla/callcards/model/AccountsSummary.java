@@ -4,7 +4,7 @@ public class AccountsSummary {
 
 	public double totalStock;
 	public double totalProviderPays;
-	public double totalCredit;
+	public double totalClientCredit;
 	public double balance;
 	public double totalCash;
 	public double totalProviderCredit;
