@@ -1,111 +1,264 @@
 package ma.mla.callcards.forms;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import ma.mla.callcards.ResourceManager;
+import ma.mla.callcards.editor.ComboEditingSupport;
+import ma.mla.callcards.editor.DoubleEditingSupport;
 import ma.mla.callcards.model.Person;
 import ma.mla.callcards.model.PersonAmount;
+import ma.mla.callcards.utils.DataUtils;
 import ma.mla.callcards.utils.UIUtils;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ToolBarManager;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.ToolBar;
 
-public class PaysComposite<T extends Person> extends BaseForm {
+@SuppressWarnings("unchecked")
+public class PaysComposite<T extends Person> extends Composite {
 
-	private List<PayRow<T>> rows = new ArrayList<PayRow<T>>();
-	private Composite rowsComposite;
+	private List<PersonAmount<T>> amounts = new ArrayList<PersonAmount<T>>();
+	private TableViewer table;
 	private String personLabel;
 	private List<T> persons;
 	private Map<T, Double> credits;
+	private Set<Person> choosenPersons = new HashSet<Person>();
+	private Action removeAction;
 
 	public PaysComposite(Composite parent, List<T> persons,
 			Map<T, Double> credits, String personLabel) {
-		super(parent);
+		super(parent, SWT.NONE);
+		setLayout(new GridLayout(1, false));
 		this.persons = persons;
 		this.credits = credits;
 		this.personLabel = personLabel;
-		createPaysComp();
-	}
+		setUpToolbar();
+		createPaysTable();
+		table.addPostSelectionChangedListener(new ISelectionChangedListener() {
 
-	protected void createColumns(Composite parent) {
-		UIUtils.newBorderLabel(parent, personLabel, 80);
-		UIUtils.newBorderLabel(parent, "Crédit", 60);
-		UIUtils.newBorderLabel(parent, "Montant", 60);
-		ToolBarManager m = new ToolBarManager();
-		m.add(new Action("Ajouter", ResourceManager
-				.getDescriptor("plus_16.png")) {
 			@Override
-			public void run() {
-				addRow();
-				layout(true, true);
+			public void selectionChanged(SelectionChangedEvent event) {
+				removeAction.setEnabled(!table.getSelection().isEmpty());
 			}
 		});
-		ToolBar toolbar = m.createControl(parent);
+	}
+
+	private PersonAmount<T> newAmount() {
+		T person = null;
+		for (T p : persons) {
+			person = p;
+			if (!choosenPersons.contains(p)) {
+				choosenPersons.add(p);
+				break;
+			}
+		}
+		return new PersonAmount<T>(person, 0.0);
+	}
+
+	private PersonAmount<T> getPersonAmount(Object element) {
+		if (element instanceof PersonAmount) {
+			return (PersonAmount<T>) element;
+		}
+		return null;
+	}
+
+	private void createPaysTable() {
+		table = new TableViewer(this, SWT.H_SCROLL | SWT.V_SCROLL
+				| SWT.FULL_SELECTION | SWT.MULTI);
+		Table t = table.getTable();
+		t.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		t.setLinesVisible(true);
+		t.setHeaderVisible(true);
+		table.setContentProvider(new ArrayContentProvider());
+		TableViewerColumn tvc = new TableViewerColumn(table, SWT.NONE);
+		TableColumn col = tvc.getColumn();
+		col.setText(personLabel);
+		col.setWidth(140);
+		tvc.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				PersonAmount<T> pa = getPersonAmount(element);
+				if (pa != null && pa.getPerson() != null) {
+					return pa.getPerson().getName();
+				}
+				return "";
+			}
+		});
+		tvc.setEditingSupport(new ComboEditingSupport<T>(table, persons,
+				new LabelProvider() {
+					public String getText(Object element) {
+						if (element instanceof Person) {
+							Person p = (Person) element;
+							return p.getName();
+						}
+						return "";
+					}
+				}) {
+			@Override
+			protected Object getValue(Object element) {
+				PersonAmount<T> pa = getPersonAmount(element);
+				if (pa != null) {
+					return pa.getPerson();
+				}
+				return null;
+			}
+
+			@Override
+			protected void setValue(Object element, Object value) {
+				PersonAmount<T> pa = getPersonAmount(element);
+				if (pa != null) {
+					T p = (T) value;
+					pa.setPerson(p);
+					table.update(pa, null);
+				}
+			}
+
+		});
+
+		tvc = new TableViewerColumn(table, SWT.NONE);
+		col = tvc.getColumn();
+		col.setText("Crédit");
+		col.setWidth(100);
+		tvc.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				PersonAmount<T> pa = getPersonAmount(element);
+				if (pa != null && pa.getPerson() != null) {
+					return DataUtils.roundString(getCredit(pa.getPerson()));
+				}
+				return "";
+			}
+		});
+
+		tvc = new TableViewerColumn(table, SWT.NONE);
+		col = tvc.getColumn();
+		col.setText("Montant");
+		col.setWidth(100);
+		tvc.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				PersonAmount<T> pa = getPersonAmount(element);
+				if (pa != null) {
+					return DataUtils.roundString(pa.getAmount());
+				}
+				return "";
+			}
+		});
+		tvc.setEditingSupport(new DoubleEditingSupport(table) {
+
+			@Override
+			public boolean isValid(Object element, Double value) {
+				PersonAmount<T> pa = getPersonAmount(element);
+				if (pa != null) {
+					return value >= 0.0;
+				}
+				return false;
+			}
+
+			@Override
+			protected Object getValue(Object element) {
+				PersonAmount<T> pa = getPersonAmount(element);
+				if (pa != null) {
+					return Double.valueOf(pa.getAmount());
+				}
+				return null;
+			}
+
+			@Override
+			protected void setValue(Object element, Object value) {
+				PersonAmount<T> pa = getPersonAmount(element);
+				if (pa != null) {
+					pa.setAmount((Double) value);
+					table.update(pa, null);
+				}
+			}
+
+		});
+
+		UIUtils.customizeTableEditing(table);
+		table.setInput(amounts);
+	}
+
+	private void setUpToolbar() {
+		ToolBarManager m = new ToolBarManager();
+		Action addAction = new Action("Ajouter",
+				ResourceManager.getDescriptor("plus_16.png")) {
+			@Override
+			public void run() {
+				amounts.add(newAmount());
+				table.refresh();
+			}
+		};
+		m.add(addAction);
+		removeAction = new Action("Supprimer",
+				ResourceManager.getDescriptor("minus_16.png")) {
+			@Override
+			public void run() {
+				List<?> selectedAmounts = UIUtils.getSelectedObjects(table
+						.getSelection());
+				amounts.removeAll(selectedAmounts);
+				for (Object o : selectedAmounts) {
+					choosenPersons.remove(((PersonAmount<?>) o).getPerson());
+				}
+				table.refresh();
+			}
+		};
+		removeAction.setEnabled(false);
+		m.add(removeAction);
+
+		ToolBar toolbar = m.createControl(this);
 		toolbar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
 	}
 
-	private void createPaysComp() {
-		rowsComposite = new Composite(this, SWT.NONE);
-		rowsComposite.setLayout(new GridLayout(4, false));
-		rowsComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true,
-				false, 2, 1));
-		createColumns(rowsComposite);
-		addRow();
-	}
-
 	public void setAmounts(List<PersonAmount<T>> amounts) {
-		for (PayRow<T> row : rows) {
-			row.dispose();
-		}
-		rows.clear();
-		for (PersonAmount<T> pa : amounts) {
-			PayRow<T> row = addRow();
-			row.setData(pa.getPerson(), pa.getAmount());
-		}
+		this.amounts.clear();
+		this.amounts.addAll(amounts);
+		table.refresh();
 	}
 
 	public List<PersonAmount<T>> getAmounts() {
-		List<PersonAmount<T>> amounts = new ArrayList<PersonAmount<T>>();
-		for (PayRow<T> row : rows) {
-			PersonAmount<T> pa = new PersonAmount<T>();
-			pa.setAmount(row.getAmount());
-			pa.setPerson(row.getPerson());
-			amounts.add(pa);
-		}
 		return amounts;
 	}
 
 	public boolean isValid() {
-		for (PayRow<T> row : rows) {
-			if (!row.isValid()) {
+		for (PersonAmount<T> a : amounts) {
+			if (!isValid(a)) {
 				return false;
 			}
 		}
 		return true;
 	}
 
-	private PayRow<T> addRow() {
-		PayRow<T> row = new PayRow<T>(rowsComposite, persons) {
-			@Override
-			protected void rowRemoved() {
-				rows.remove(this);
-			}
+	public boolean isValid(PersonAmount<T> a) {
+		if (a.getPerson() == null || a.getAmount() == 0.0) {
+			MessageDialog.openError(getShell(), "Données incomplètes",
+					"Veuillez compléter les donnée avant de valider");
+			return false;
+		}
+		return true;
+	}
 
-			@Override
-			protected double getCredit(T person) {
-				Double d = credits.get(person);
-				return d != null ? d.doubleValue() : 0.0;
-			}
-		};
-		rows.add(row);
-		return row;
+	protected double getCredit(T person) {
+		Double d = credits.get(person);
+		return d != null ? d.doubleValue() : 0.0;
 	}
 
 }

@@ -17,6 +17,7 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
@@ -40,7 +41,7 @@ public class InitDataDialog extends ScrolledDialog {
 
 	@Override
 	protected Point getInitialSize() {
-		return new Point(600, 900);
+		return new Point(500, 700);
 	}
 
 	@Override
@@ -52,6 +53,12 @@ public class InitDataDialog extends ScrolledDialog {
 	protected void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 		newShell.setText("Report année précédente");
+	}
+
+	@Override
+	protected Button createButton(Composite parent, int id, String label,
+			boolean defaultButton) {
+		return super.createButton(parent, id, label, false);
 	}
 
 	@Override

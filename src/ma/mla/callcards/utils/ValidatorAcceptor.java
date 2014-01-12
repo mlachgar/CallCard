@@ -13,7 +13,7 @@ public abstract class ValidatorAcceptor<T> implements Validator<T>, Acceptor<T> 
 
 			@Override
 			public boolean isValid(T e) {
-				return validator.isValid(e);
+				return validator != null ? validator.isValid(e) : true;
 			}
 		};
 	}

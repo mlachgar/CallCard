@@ -8,8 +8,9 @@ import java.util.Set;
 
 import ma.mla.callcards.ResourceManager;
 import ma.mla.callcards.dao.StorageManager;
-import ma.mla.callcards.editor.DoubleEditingSupoort;
-import ma.mla.callcards.editor.TextEditingSupoort;
+import ma.mla.callcards.editor.ComboEditingSupport;
+import ma.mla.callcards.editor.DoubleEditingSupport;
+import ma.mla.callcards.editor.SpinnerEditingSupport;
 import ma.mla.callcards.model.Product;
 import ma.mla.callcards.model.ProductSet;
 import ma.mla.callcards.model.ProductType;
@@ -20,6 +21,7 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
@@ -49,21 +51,39 @@ public class ProductSetForm extends Composite {
 		t.setLinesVisible(true);
 		t.setHeaderVisible(true);
 		table.setContentProvider(new ArrayContentProvider());
-
 		TableViewerColumn tvc = new TableViewerColumn(table, SWT.NONE);
 		TableColumn col = tvc.getColumn();
 		col.setText("Produit");
-		col.setWidth(120);
-		tvc.setLabelProvider(new ColumnLabelProvider() {
-			@Override
-			public String getText(Object element) {
-				if (element instanceof ProductSet) {
-					ProductSet ps = (ProductSet) element;
-					if (ps.getProduct() != null) {
-						return ps.getProduct().getName();
+		col.setWidth(140);
+		tvc.setLabelProvider(new ProductSetLabelProbider(0));
+		tvc.setEditingSupport(new ComboEditingSupport<Product>(table,
+				StorageManager.getStorage().getProducts(), new LabelProvider() {
+					public String getText(Object element) {
+						if (element instanceof Product) {
+							Product p = (Product) element;
+							return p.getName();
+						}
+						return "";
 					}
+				}) {
+			@Override
+			protected Object getValue(Object element) {
+				ProductSet ps = getProductSet(element);
+				if (ps != null) {
+					return ps.getProduct();
 				}
-				return "";
+				return null;
+			}
+
+			@Override
+			protected void setValue(Object element, Object value) {
+				ProductSet ps = getProductSet(element);
+				if (ps != null) {
+					Product p = (Product) value;
+					ps.setProduct(p);
+					ps.setUnitPrice(p.getUnitPrice(p.getDefaultPurchaseValue()));
+					table.update(ps, null);
+				}
 			}
 
 		});
@@ -71,36 +91,36 @@ public class ProductSetForm extends Composite {
 		tvc = new TableViewerColumn(table, SWT.NONE);
 		col = tvc.getColumn();
 		col.setText("Quantité");
-		col.setWidth(80);
-		tvc.setEditingSupport(new TextEditingSupoort(table) {
+		col.setWidth(100);
+		tvc.setLabelProvider(new ProductSetLabelProbider(1));
+		tvc.setEditingSupport(new SpinnerEditingSupport(table, 0,
+				Integer.MAX_VALUE) {
 
 			@Override
 			protected void setValue(Object element, Object value) {
-
+				ProductSet ps = getProductSet(element);
+				if (ps != null && value != null) {
+					ps.setCount((Integer) value);
+					table.update(ps, null);
+				}
 			}
 
 			@Override
 			protected Object getValue(Object element) {
+				ProductSet ps = getProductSet(element);
+				if (ps != null) {
+					return Integer.valueOf(ps.getCount());
+				}
 				return null;
 			}
-		});
-		tvc.setLabelProvider(new ColumnLabelProvider() {
-			@Override
-			public String getText(Object element) {
-				if (element instanceof ProductSet) {
-					ProductSet ps = (ProductSet) element;
-					return String.valueOf(ps.getCount());
-				}
-				return "";
-			}
-
 		});
 
 		tvc = new TableViewerColumn(table, SWT.NONE);
 		col = tvc.getColumn();
-		col.setText("%/Prix Unit");
+		col.setText("% / Prix Unit");
 		col.setWidth(80);
-		tvc.setEditingSupport(new DoubleEditingSupoort(table) {
+		tvc.setLabelProvider(new ProductSetLabelProbider(2));
+		tvc.setEditingSupport(new DoubleEditingSupport(table) {
 
 			@Override
 			public boolean isValid(Object element, Double value) {
@@ -132,21 +152,12 @@ public class ProductSetForm extends Composite {
 
 			@Override
 			protected void setValue(Object element, Object value) {
-
-			}
-
-		});
-		tvc.setLabelProvider(new ColumnLabelProvider() {
-			@Override
-			public String getText(Object element) {
-				if (element instanceof ProductSet) {
-					ProductSet ps = (ProductSet) element;
-					if (ps.getProduct() != null) {
-						return DataUtils.roundString(ps.getProduct().getValue(
-								ps.getUnitPrice()));
-					}
+				ProductSet ps = getProductSet(element);
+				if (ps != null && ps.getProduct() != null) {
+					ps.setUnitPrice(ps.getProduct()
+							.getUnitPrice((Double) value));
+					table.update(ps, null);
 				}
-				return "";
 			}
 
 		});
@@ -154,19 +165,10 @@ public class ProductSetForm extends Composite {
 		tvc = new TableViewerColumn(table, SWT.NONE);
 		col = tvc.getColumn();
 		col.setText("S.Total");
-		col.setWidth(80);
-		tvc.setLabelProvider(new ColumnLabelProvider() {
-			@Override
-			public String getText(Object element) {
-				if (element instanceof ProductSet) {
-					ProductSet ps = (ProductSet) element;
-					return DataUtils.roundString(ps.getCost());
-				}
-				return "";
-			}
+		col.setWidth(100);
+		tvc.setLabelProvider(new ProductSetLabelProbider(3));
 
-		});
-
+		UIUtils.customizeTableEditing(table);
 		table.setInput(products);
 	}
 
@@ -221,7 +223,7 @@ public class ProductSetForm extends Composite {
 		});
 
 		ToolBar toolbar = m.createControl(this);
-		toolbar.setLayoutData(new GridData(SWT.TRAIL, SWT.TOP, true, false));
+		toolbar.setLayoutData(new GridData(SWT.LEAD, SWT.TOP, true, false));
 	}
 
 	public void setProducts(Collection<ProductSet> products) {
@@ -242,6 +244,36 @@ public class ProductSetForm extends Composite {
 
 	public List<ProductSet> getProducts() {
 		return products;
+	}
+
+	private static class ProductSetLabelProbider extends ColumnLabelProvider {
+		int columnIndex;
+
+		ProductSetLabelProbider(int columnIndex) {
+			this.columnIndex = columnIndex;
+		}
+
+		@Override
+		public String getText(Object element) {
+			if (element instanceof ProductSet) {
+				ProductSet ps = (ProductSet) element;
+				if (ps != null) {
+					Product p = ps.getProduct();
+					switch (columnIndex) {
+					case 0:
+						return p != null ? p.getName() : "";
+					case 1:
+						return String.valueOf(ps.getCount());
+					case 2:
+						return p != null ? DataUtils.roundString(ps
+								.getProduct().getValue(ps.getUnitPrice())) : "";
+					case 3:
+						return DataUtils.roundString(ps.getCost());
+					}
+				}
+			}
+			return "";
+		}
 	}
 
 }

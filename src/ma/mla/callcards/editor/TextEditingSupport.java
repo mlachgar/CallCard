@@ -5,9 +5,9 @@ import org.eclipse.jface.viewers.ColumnViewer;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TextCellEditor;
 
-public abstract class TextEditingSupoort extends EditingSupport {
+public abstract class TextEditingSupport extends EditingSupport {
 
-	public TextEditingSupoort(ColumnViewer viewer) {
+	public TextEditingSupport(ColumnViewer viewer) {
 		super(viewer);
 	}
 
